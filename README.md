@@ -12,6 +12,8 @@ A PyTorch implementation of a Generative Adversarial Network (GAN) that learns t
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [What This Project Does](#what-this-project-does)
+- [Project Workflow](#project-workflow)
 - [How GANs Work](#how-gans-work)
 - [Features](#features)
 - [Requirements](#requirements)
@@ -48,6 +50,105 @@ Through adversarial training, the Generator learns to produce increasingly reali
 
 ---
 
+## 💡 What This Project Does
+
+This MNIST GAN project accomplishes the following:
+
+### Core Functionality
+
+1. **Learns from Real Data**: Downloads and processes the MNIST dataset containing 60,000 handwritten digit images
+2. **Trains Two Competing Networks**: 
+   - Generator creates fake digits from random noise
+   - Discriminator learns to distinguish real from fake digits
+3. **Generates New Digits**: After training, the Generator can create unlimited unique, realistic-looking handwritten digits
+4. **Saves Progress**: Automatically saves training checkpoints and generated sample images throughout training
+5. **Visualizes Results**: Creates image grids showing the quality improvement of generated digits over time
+
+### Use Cases
+
+- **Educational**: Learn how GANs work through a simple, well-documented implementation
+- **Data Augmentation**: Generate additional training data for digit recognition tasks
+- **Creative**: Produce unique handwritten digit artwork or animations
+- **Research**: Serve as a baseline for more advanced GAN experiments
+- **Prototyping**: Quick starting point for similar image generation projects
+
+---
+
+## 🔄 Project Workflow
+
+Here's the complete workflow from setup to generation:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        PROJECT WORKFLOW                              │
+└─────────────────────────────────────────────────────────────────────┘
+
+1. SETUP PHASE
+   ├── Install dependencies (PyTorch, torchvision, matplotlib)
+   ├── Download MNIST dataset (automatic on first run)
+   └── Initialize GPU/CPU device
+
+2. TRAINING PHASE (train_gan.py)
+   ├── Initialize Generator & Discriminator networks
+   ├── Load MNIST data in batches
+   ├── For each epoch:
+   │   ├── Train Discriminator on real + fake images
+   │   ├── Train Generator to fool Discriminator
+   │   ├── Log losses
+   │   └── Every 5 epochs:
+   │       ├── Save checkpoint to checkpoints/
+   │       └── Generate sample images to results/
+   └── Save final model and images
+
+3. GENERATION PHASE (generate.py)
+   ├── Load trained model from checkpoint
+   ├── Generate random noise vectors
+   ├── Feed noise through Generator
+   ├── Create image grids
+   └── Save generated samples to results/
+
+4. ANALYSIS PHASE
+   ├── Review training progress images
+   ├── Compare epoch 5 vs epoch 50 quality
+   ├── Check architecture diagrams in resources/
+   └── Analyze loss curves
+```
+
+### Detailed Step-by-Step Flow
+
+**Step 1: Data Preparation**
+- MNIST images are normalized to [-1, 1] range
+- Images flattened from 28×28 to 784-dimensional vectors
+- Batched into groups of 64 for efficient training
+
+**Step 2: Adversarial Training Loop**
+```
+For each batch:
+├── Discriminator Training:
+│   ├── Show real MNIST images (label: 1 = real)
+│   ├── Generate fake images from noise (label: 0 = fake)
+│   ├── Discriminator learns to classify both
+│   └── Update Discriminator weights
+│
+└── Generator Training:
+    ├── Generate new fake images
+    ├── Get Discriminator's opinion on fakes
+    ├── Generator tries to maximize "real" score
+    └── Update Generator weights
+```
+
+**Step 3: Quality Improvement**
+- Early epochs: Blurry, unrecognizable shapes
+- Mid epochs: Rough digit outlines emerge
+- Late epochs: Clear, realistic handwritten digits
+
+**Step 4: Deployment**
+- Trained Generator can create unlimited new digits
+- No Discriminator needed after training
+- Fast generation: ~1000 images per second on GPU
+
+---
+
 ## 🧠 How GANs Work
 
 ### The Game Theory Analogy
@@ -63,6 +164,9 @@ Think of a GAN as a game between two players:
    - Examines money to determine if it's real or fake
    - Gets better at spotting fakes over time
    - Forces the Forger to improve
+
+![GAN Architecture](resources/gan_architecture_diagram.png)
+*Diagram showing the complete GAN architecture with Generator and Discriminator*
 
 ### Training Process
 
@@ -110,6 +214,9 @@ Goal: Maximize the probability that the Discriminator classifies fake images as 
 L_D = -[log(D(x)) + log(1 - D(G(z)))]
 ```
 Goal: Correctly classify real images as real (1) and fake images as fake (0).
+
+![Training Progress](resources/training_progression.png)
+*Visual showing how generated digits improve from epoch 5 to epoch 50*
 
 ---
 
@@ -216,28 +323,97 @@ CUDA: True
 ```
 gan_project/
 │
-├── README.md                 # This file
-├── requirements.txt          # Python dependencies
-├── train_gan.py             # Main training script
+├── README.md                 # This file - Complete documentation
+├── requirements.txt          # Python dependencies list
+├── train_gan.py             # Main training script - Runs GAN training
 ├── generate.py              # Generate images from trained model
 │
+├── .github/                 # GitHub specific files
+│   └── copilot-instructions.md  # Instructions for GitHub Copilot
+│
 ├── dataset/                 # Auto-created on first run
-│   └── MNIST/
-│       ├── raw/             # Downloaded dataset files
-│       └── processed/       # Preprocessed tensors
+│   └── MNIST/               # MNIST dataset storage
+│       ├── raw/             # Downloaded dataset files (60,000 images)
+│       └── processed/       # Preprocessed tensors for faster loading
 │
-├── results/                 # Auto-created: Generated images
-│   ├── epoch_5.png
-│   ├── epoch_10.png
-│   ├── epoch_15.png
-│   ├── ...
-│   └── final_generated.png
+├── resources/               # Documentation resources and visual aids
+│   ├── gan_architecture_diagram.png    # Network architecture visualization
+│   ├── training_progression.png        # Quality improvement over epochs
+│   ├── generator_network.png           # Detailed Generator architecture
+│   ├── discriminator_network.png       # Detailed Discriminator architecture
+│   ├── loss_curves.png                 # Training loss visualization
+│   └── sample_outputs/                 # Example generated images
+│       ├── epoch_05_samples.png
+│       ├── epoch_25_samples.png
+│       └── epoch_50_samples.png
 │
-└── checkpoints/             # Auto-created: Model checkpoints
-    ├── checkpoint_epoch_5.pth
-    ├── checkpoint_epoch_10.pth
-    └── checkpoint_epoch_50.pth
+├── results/                 # Auto-created: Generated images during training
+│   ├── epoch_5.png          # 8×8 grid of generated digits at epoch 5
+│   ├── epoch_10.png         # Generated samples at epoch 10
+│   ├── epoch_15.png         # Generated samples at epoch 15
+│   ├── ...                  # Progressive improvement visible
+│   ├── epoch_50.png         # Final training results
+│   ├── final_generated.png  # Best quality samples
+│   └── generated_samples.png # Output from generate.py (10×10 grid)
+│
+└── checkpoints/             # Auto-created: Model checkpoints for resuming
+    ├── checkpoint_epoch_5.pth     # Model state at epoch 5
+    ├── checkpoint_epoch_10.pth    # Model state at epoch 10
+    ├── checkpoint_epoch_15.pth    # Model state at epoch 15
+    └── checkpoint_epoch_50.pth    # Final trained model (use this!)
 ```
+
+### Folder and File Descriptions
+
+#### Core Scripts
+
+- **`train_gan.py`**: Main training script that:
+  - Initializes Generator and Discriminator networks
+  - Loads MNIST dataset
+  - Runs adversarial training loop for 50 epochs
+  - Saves checkpoints and sample images every 5 epochs
+  - Prints training progress and loss values
+
+- **`generate.py`**: Post-training image generation script that:
+  - Loads a trained Generator from checkpoint
+  - Creates random noise vectors
+  - Generates 100 new digit images
+  - Displays them in a 10×10 grid
+  - Saves output to results/
+
+- **`requirements.txt`**: Lists all Python package dependencies with version requirements
+
+- **`README.md`**: This comprehensive documentation file
+
+#### Data and Output Directories
+
+- **`dataset/`**: Automatically created directory for MNIST data
+  - Downloads on first run (~12MB)
+  - Contains 60,000 training images + 10,000 test images
+  - Preprocessed tensors stored for faster subsequent runs
+
+- **`results/`**: Contains all generated image outputs
+  - Progress snapshots saved every 5 epochs
+  - Final high-quality generated samples
+  - Image grids for easy visualization
+  - Use these to track training quality improvement
+
+- **`checkpoints/`**: Stores model state dictionaries
+  - Includes Generator weights, Discriminator weights
+  - Also saves optimizer states for perfect resuming
+  - Each checkpoint is ~2-3MB
+  - Can resume training from any saved epoch
+
+- **`resources/`**: Documentation and reference materials
+  - Architecture diagrams for understanding network structure
+  - Sample outputs demonstrating expected results
+  - Training progression visualizations
+  - Loss curve examples for comparison
+  - Reference these when learning or troubleshooting
+
+#### Configuration Files
+
+- **`.github/copilot-instructions.md`**: Instructions for GitHub Copilot integration (optional)
 
 ---
 
@@ -255,14 +431,14 @@ python train_gan.py
 
 1. **Initialization** (First run only)
    - Downloads MNIST dataset (~12MB)
-   - Creates necessary directories
+   - Creates necessary directories (dataset/, results/, checkpoints/)
    - Initializes models on GPU/CPU
 
 2. **Training Loop**
    - Trains for 50 epochs (configurable)
    - Prints loss every 5 epochs
-   - Saves generated images every 5 epochs
-   - Saves model checkpoints
+   - Saves generated images every 5 epochs to `results/`
+   - Saves model checkpoints to `checkpoints/`
 
 3. **Output**
    ```
@@ -313,11 +489,22 @@ for epoch in range(start_epoch, num_epochs):
     # ... rest of training code
 ```
 
+### Viewing Resources
+
+Check the `resources/` folder to:
+- Understand network architecture: `gan_architecture_diagram.png`
+- See expected training progression: `training_progression.png`
+- Compare your results with sample outputs: `sample_outputs/`
+- Analyze loss curves: `loss_curves.png`
+
 ---
 
 ## 🎓 Training Details
 
 ### Model Architecture
+
+![Generator Architecture](resources/generator_network.png)
+*Detailed Generator network structure*
 
 **Generator**
 ```
@@ -331,6 +518,9 @@ Linear(512 → 784) + Tanh
    ↓
 Output: Image (28×28 pixels)
 ```
+
+![Discriminator Architecture](resources/discriminator_network.png)
+*Detailed Discriminator network structure*
 
 **Discriminator**
 ```
@@ -378,11 +568,11 @@ Output: Probability (0=Fake, 1=Real)
 
 ### Training Progress Visualization
 
-The quality of generated images improves over time:
+The quality of generated images improves over time. Check `resources/training_progression.png` for visual comparison.
 
 **Epoch 5**: Noisy, random patterns
 ```
-[Blurry, unclear shapes]
+[Blurry, unclear shapes - see resources/sample_outputs/epoch_05_samples.png]
 ```
 
 **Epoch 20**: Recognizable digit shapes
@@ -392,8 +582,11 @@ The quality of generated images improves over time:
 
 **Epoch 50**: Clear, realistic digits
 ```
-[Well-formed handwritten digits]
+[Well-formed handwritten digits - see resources/sample_outputs/epoch_50_samples.png]
 ```
+
+![Loss Curves](resources/loss_curves.png)
+*Example of healthy training: balanced losses converging*
 
 ### Loss Interpretation
 
@@ -408,10 +601,19 @@ The quality of generated images improves over time:
 
 ### Sample Outputs
 
-Check the `results/` folder for:
-- `epoch_X.png`: 8×8 grids of generated digits at epoch X
-- `final_generated.png`: Final results after training
-- `generated_samples.png`: 10×10 grid from `generate.py`
+Check the following locations for results:
+
+1. **Training Progress**: `results/epoch_X.png` 
+   - 8×8 grids showing improvement at epochs 5, 10, 15, 20, 25, 30, 35, 40, 45, 50
+
+2. **Final Results**: `results/final_generated.png`
+   - Best quality samples after complete training
+
+3. **Generated Samples**: `results/generated_samples.png`
+   - 10×10 grid created by `generate.py`
+
+4. **Reference Samples**: `resources/sample_outputs/`
+   - Example outputs showing expected quality at different epochs
 
 ---
 
@@ -464,6 +666,7 @@ Using device: cpu
 **Symptoms:**
 - Images look random even after 50 epochs
 - All images look the same (mode collapse)
+- Results don't match `resources/sample_outputs/`
 
 **Solutions:**
 1. Train longer (100-200 epochs)
@@ -476,6 +679,7 @@ Using device: cpu
    real_labels = torch.ones_like(disc_real) * 0.9  # Instead of 1.0
    fake_labels = torch.zeros_like(disc_fake) + 0.1  # Instead of 0.0
    ```
+4. Compare your loss curves with `resources/loss_curves.png`
 
 #### 5. Training Takes Too Long on CPU
 
@@ -497,6 +701,21 @@ HTTP Error 503: Service Unavailable
 Manually download MNIST from: http://yann.lecun.com/exdb/mnist/
 - Place files in `dataset/MNIST/raw/`
 - Set `download=False` in code
+
+#### 7. Checkpoint File Not Found
+
+**Error:**
+```
+FileNotFoundError: checkpoints/checkpoint_epoch_50.pth
+```
+
+**Solution:**
+- Ensure training completed successfully
+- Check `checkpoints/` directory for available epochs
+- Update `generate.py` to use existing checkpoint:
+  ```python
+  checkpoint_path = 'checkpoints/checkpoint_epoch_45.pth'  # Use available epoch
+  ```
 
 ---
 
@@ -545,7 +764,7 @@ writer.add_images('Generated', fake, epoch)
 
 ### Use Convolutional Layers (DCGAN)
 
-For better image quality, upgrade to convolutional architecture:
+For better image quality, upgrade to convolutional architecture. Reference `resources/gan_architecture_diagram.png` for guidance:
 
 ```python
 class Generator(nn.Module):
@@ -575,7 +794,8 @@ Contributions are welcome! Here's how you can help:
 2. **Suggest Features**: Propose new ideas or improvements
 3. **Submit Pull Requests**: Fix bugs or add features
 4. **Improve Documentation**: Help make this README better
-5. **Share Results**: Post your generated images!
+5. **Share Results**: Post your generated images in `resources/sample_outputs/`!
+6. **Add Visual Resources**: Create diagrams or visualizations for the `resources/` folder
 
 ### Development Setup
 
@@ -653,9 +873,9 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
 ## 📞 Contact & Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/simple-gan-mnist/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/simple-gan-mnist/discussions)
-- **Email**: your.email@example.com
+- **Issues**: [GitHub Issues](https://github.com/abhinave-p-b/simple-gan-mnist/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/abhinave-p-b/MNIST-GAN-Project/discussions)
+- **Email**: abhinavepb92@gmail.com
 
 ---
 
@@ -670,12 +890,19 @@ python train_gan.py
 
 # 3. Generate new images
 python generate.py
+
+# 4. Check results
+# - Training progress: results/epoch_X.png
+# - Final samples: results/final_generated.png
+# - Reference materials: resources/
 ```
 
-That's it! You should see generated MNIST digits improving over time.
+That's it! You should see generated MNIST digits improving over time. Compare your results with the samples in `resources/sample_outputs/` to ensure proper training.
 
 ---
 
 **Happy Training! 🚀**
 
 If this project helped you, please consider giving it a ⭐ on GitHub!
+
+For visual learners, check out the architecture diagrams and sample outputs in the `resources/` folder!
