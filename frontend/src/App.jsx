@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import {io} from 'socket.io-client'; 
 import { Play, Square, Download, RefreshCw, Zap, Brain, Eye, Settings, Info } from 'lucide-react';
 
 const MNISTGANInterface = () => {
-  const [trainingStatus, setTrainingStatus] = useState('idle'); // idle, training, paused, completed
+  const [trainingStatus, setTrainingStatus] = useState('idle');
   const [currentEpoch, setCurrentEpoch] = useState(0);
   const [totalEpochs, setTotalEpochs] = useState(50);
   const [generatorLoss, setGeneratorLoss] = useState(0);
@@ -11,40 +12,113 @@ const MNISTGANInterface = () => {
   const [selectedModel, setSelectedModel] = useState('epoch_50');
   const [numImagesToGenerate, setNumImagesToGenerate] = useState(64);
   const [showSettings, setShowSettings] = useState(false);
-  
-  // Training parameters
+  const [socket, setSocket] = useState(null);
   const [learningRate, setLearningRate] = useState(0.0002);
   const [batchSize, setBatchSize] = useState(64);
   const [latentDim, setLatentDim] = useState(64);
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
 
-  // Simulate training progress
+  useEffect(() => {
+    // Note: Socket.IO requires installation: npm install socket.io-client
+    // For demo purposes, this will be commented out
+    
+    const newSocket = io('http://localhost:5000');
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      console.log('✅ WebSocket connected!');
+      setConnectionStatus('connected');
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('❌ WebSocket disconnected!');
+      setConnectionStatus('disconnected');
+    });
+
+    newSocket.on('training_update', (data) => {
+      setCurrentEpoch(data.current_epoch);
+      setGeneratorLoss(data.generator_loss);
+      setDiscriminatorLoss(data.discriminator_loss);
+    });
+
+    newSocket.on('sample_images', (data) => {
+      console.log('Received sample images for epoch', data.epoch);
+      setGeneratedImages(prev => [...prev, { epoch: data.epoch, images: data.images }]);
+    });
+
+    newSocket.on('error', (error) => {
+      console.error('Socket error:', error);
+    });
+
+    return () => {
+      console.log('Cleaning up socket connection');
+      newSocket.close();
+    };
+    
+    
+    // Demo mode: simulate connection
+    //console.log('Running in demo mode - WebSocket disabled');
+    setConnectionStatus('demo');
+  }, []);
+
   const startTraining = async () => {
     setTrainingStatus('training');
     setCurrentEpoch(0);
     setGeneratedImages([]);
     
-    // Simulate API call to backend
+    // API call (commented for demo)
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/train', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          learning_rate: learningRate,
+          batch_size: batchSize,
+          latent_dim: latentDim,
+          total_epochs: totalEpochs
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Training request failed');
+      }
+      
+      const data = await response.json();
+      console.log('Training started:', data);
+    } catch (error) {
+      console.error('Error starting training:', error);
+      setTrainingStatus('idle');
+      alert('Failed to start training. Make sure the backend server is running.');
+      return;
+    }
+    
+    /*
+    // Simulate training for demo
     console.log('Starting training with params:', {
       learningRate,
       batchSize,
       latentDim,
-      totalEpochs
-    });
+      totalEpochs 
+    });*/
     
-    // Simulate training progress
+    simulateTraining();
+  };
+
+  const simulateTraining = async () => {
     for (let i = 1; i <= totalEpochs; i++) {
       if (trainingStatus === 'paused') break;
       
       await new Promise(resolve => setTimeout(resolve, 100));
       setCurrentEpoch(i);
       
-      // Simulate loss values
       const dLoss = 0.6 + Math.random() * 0.2;
       const gLoss = 0.8 + Math.random() * 0.4;
       setDiscriminatorLoss(dLoss);
       setGeneratorLoss(gLoss);
       
-      // Generate sample images every 5 epochs
       if (i % 5 === 0) {
         const samples = generateSampleImages(8);
         setGeneratedImages(prev => [...prev, { epoch: i, images: samples }]);
@@ -59,21 +133,19 @@ const MNISTGANInterface = () => {
   };
 
   const generateImages = () => {
-    const images = generateSampleImages(Math.sqrt(numImagesToGenerate));
+    const gridSize = Math.sqrt(numImagesToGenerate);
+    const images = generateSampleImages(gridSize);
     setGeneratedImages([{ epoch: 'generated', images }]);
   };
 
-  // Simulate image generation (in real app, this would call your Python backend)
   const generateSampleImages = (gridSize) => {
     const images = [];
     for (let i = 0; i < gridSize * gridSize; i++) {
-      // Create canvas with simulated digit
       const canvas = document.createElement('canvas');
       canvas.width = 28;
       canvas.height = 28;
       const ctx = canvas.getContext('2d');
       
-      // Fill with gradient to simulate digit
       const gradient = ctx.createRadialGradient(14, 14, 2, 14, 14, 14);
       gradient.addColorStop(0, `hsl(${Math.random() * 60}, 20%, ${30 + Math.random() * 40}%)`);
       gradient.addColorStop(1, `hsl(${Math.random() * 60}, 10%, ${10 + Math.random() * 20}%)`);
@@ -95,7 +167,6 @@ const MNISTGANInterface = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white p-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Brain className="w-12 h-12 text-purple-400" />
@@ -106,13 +177,24 @@ const MNISTGANInterface = () => {
           <p className="text-gray-400 text-lg">
             Train and generate handwritten digits using Generative Adversarial Networks
           </p>
+          
+          {/* Connection Status */}
+          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700">
+            <div className={`w-2 h-2 rounded-full ${
+              connectionStatus === 'connected' ? 'bg-green-500' :
+              connectionStatus === 'disconnected' ? 'bg-red-500' :
+              'bg-yellow-500'
+            }`} />
+            <span className="text-xs text-gray-400">
+              {connectionStatus === 'connected' ? 'Backend Connected' :
+               connectionStatus === 'disconnected' ? 'Backend Disconnected' :
+               'Demo Mode'}
+            </span>
+          </div>
         </div>
 
-        {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Control Panel */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Training Controls */}
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 shadow-xl">
               <div className="flex items-center gap-2 mb-4">
                 <Zap className="w-5 h-5 text-yellow-400" />
@@ -125,7 +207,7 @@ const MNISTGANInterface = () => {
                   <input
                     type="number"
                     value={totalEpochs}
-                    onChange={(e) => setTotalEpochs(parseInt(e.target.value))}
+                    onChange={(e) => setTotalEpochs(parseInt(e.target.value) || 50)}
                     disabled={trainingStatus === 'training'}
                     className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
@@ -147,7 +229,7 @@ const MNISTGANInterface = () => {
                         type="number"
                         step="0.0001"
                         value={learningRate}
-                        onChange={(e) => setLearningRate(parseFloat(e.target.value))}
+                        onChange={(e) => setLearningRate(parseFloat(e.target.value) || 0.0002)}
                         disabled={trainingStatus === 'training'}
                         className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
@@ -157,7 +239,7 @@ const MNISTGANInterface = () => {
                       <input
                         type="number"
                         value={batchSize}
-                        onChange={(e) => setBatchSize(parseInt(e.target.value))}
+                        onChange={(e) => setBatchSize(parseInt(e.target.value) || 64)}
                         disabled={trainingStatus === 'training'}
                         className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
@@ -167,7 +249,7 @@ const MNISTGANInterface = () => {
                       <input
                         type="number"
                         value={latentDim}
-                        onChange={(e) => setLatentDim(parseInt(e.target.value))}
+                        onChange={(e) => setLatentDim(parseInt(e.target.value) || 64)}
                         disabled={trainingStatus === 'training'}
                         className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
@@ -212,7 +294,6 @@ const MNISTGANInterface = () => {
               </div>
             </div>
 
-            {/* Loss Metrics */}
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 shadow-xl">
               <div className="flex items-center gap-2 mb-4">
                 <Eye className="w-5 h-5 text-blue-400" />
@@ -257,7 +338,6 @@ const MNISTGANInterface = () => {
               </div>
             </div>
 
-            {/* Generation Controls */}
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 shadow-xl">
               <div className="flex items-center gap-2 mb-4">
                 <RefreshCw className="w-5 h-5 text-purple-400" />
@@ -310,7 +390,6 @@ const MNISTGANInterface = () => {
             </div>
           </div>
 
-          {/* Results Display */}
           <div className="lg:col-span-2">
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 shadow-xl">
               <h2 className="text-2xl font-bold mb-6">Generated Results</h2>
@@ -355,7 +434,6 @@ const MNISTGANInterface = () => {
           </div>
         </div>
 
-        {/* Info Banner */}
         <div className="bg-purple-900/20 border border-purple-500/30 rounded-xl p-4">
           <div className="flex items-start gap-3">
             <Info className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />

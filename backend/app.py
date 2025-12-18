@@ -16,7 +16,7 @@ from train_gan import Generator, Discriminator
 
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*",async_mode='threading')
 
 # Global variables
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -101,21 +101,28 @@ def train_gan_async(lr, batch_size, z_dim, epochs):
             curr_batch_size = real_images.shape[0]
             
             # Train Discriminator
+
+            # Train Discriminator with label smoothing
             noise = torch.randn(curr_batch_size, z_dim).to(device)
             fake_images = current_gen(noise)
-            
+
+            # Real images - use label smoothing (0.9 instead of 1.0)
             disc_real = current_disc(real_images).view(-1)
-            loss_d_real = criterion(disc_real, torch.ones_like(disc_real))
-            
+            real_labels = torch.ones_like(disc_real) * 0.9  # Label smoothing
+            loss_d_real = criterion(disc_real, real_labels)
+
+            # Fake images - use label smoothing (0.1 instead of 0.0)
             disc_fake = current_disc(fake_images.detach()).view(-1)
-            loss_d_fake = criterion(disc_fake, torch.zeros_like(disc_fake))
-            
+            fake_labels = torch.zeros_like(disc_fake) + 0.1  # Label smoothing
+            loss_d_fake = criterion(disc_fake, fake_labels)
+
+            # Total discriminator loss
             loss_d = (loss_d_real + loss_d_fake) / 2
-            
+
             current_disc.zero_grad()
             loss_d.backward()
             opt_disc.step()
-            
+                        
             # Train Generator
             output = current_disc(fake_images).view(-1)
             loss_g = criterion(output, torch.ones_like(output))
@@ -134,8 +141,21 @@ def train_gan_async(lr, batch_size, z_dim, epochs):
         
         # Generate sample images every 5 epochs
         if (epoch + 1) % 5 == 0:
-            samples = generate_sample_images(8)
-            socketio.emit('sample_images', {
+            with torch.no_grad():
+                fixed_noise = torch.randn(64, z_dim).to(device)
+                fake_images = current_gen(fixed_noise).reshape(-1, 1, 28, 28)
+                fake_images = fake_images.cpu().numpy() 
+                #convert to base64
+                samples=[]
+                for img in fake_images:
+                    img_array = ((img[0] + 1) * 127.5).astype(np.uint8)
+                    pil_img = Image.fromarray(img_array, mode='L')
+                    buffer = io.BytesIO()
+                    pil_img.save(buffer, format='PNG')
+                    img_base64 = base64.b64encode(buffer.getvalue()).decode()
+                    samples.append(f'data:image/png;base64,{img_base64}')
+
+                socketio.emit('sample_images', {
                 'epoch': epoch + 1,
                 'images': samples
             })
@@ -199,10 +219,10 @@ def generate_sample_images(grid_size):
         buffer = io.BytesIO()
         pil_img.save(buffer, format='PNG')
         img_base64 = base64.b64encode(buffer.getvalue()).decode()
-        
-        image_list.append(f'data:image/png;base64,{img_base64}')
+        return f'data:image/png;base64,{img_base64}'
+       # image_list.append(f'data:image/png;base64,{img_base64}')
     
-    return image_list
+    #return image_list
 
 @app.route('/api/checkpoints', methods=['GET'])
 def list_checkpoints():
