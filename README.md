@@ -653,9 +653,9 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
 ## 📞 Contact & Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/simple-gan-mnist/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/simple-gan-mnist/discussions)
-- **Email**: your.email@example.com
+- **Issues**: [GitHub Issues](https://github.com/abhinave-p-b/simple-gan-mnist/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/abhinave-p-b/MNIST-GAN-Project/discussions)
+- **Email**: abhinavepb92@gmail.com
 
 ---
 
