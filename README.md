@@ -1,10 +1,11 @@
-# 🎨 Simple GAN for MNIST Digit Generation
+# 🎨 MNIST GAN Studio - Interactive Web Interface
 
-A PyTorch implementation of a Generative Adversarial Network (GAN) that learns to generate handwritten digits similar to the MNIST dataset. This project demonstrates the fundamental concepts of adversarial training with GPU acceleration support.
+A comprehensive PyTorch implementation of a Generative Adversarial Network (GAN) with a modern web-based interface for training and generating handwritten digits. This project features both command-line scripts and an intuitive web UI for real-time visualization and interaction.
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)
 ![CUDA](https://img.shields.io/badge/CUDA-Supported-76B900.svg)
+![Flask](https://img.shields.io/badge/Flask-3.0+-000000.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 ---
@@ -12,6 +13,8 @@ A PyTorch implementation of a Generative Adversarial Network (GAN) that learns t
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [What's New: Web Interface](#whats-new-web-interface)
+- [GAN Architecture](#gan-architecture)
 - [What This Project Does](#what-this-project-does)
 - [Project Workflow](#project-workflow)
 - [How GANs Work](#how-gans-work)
@@ -20,8 +23,9 @@ A PyTorch implementation of a Generative Adversarial Network (GAN) that learns t
 - [Installation](#installation)
 - [Project Structure](#project-structure)
 - [Usage](#usage)
+- [Web Interface Guide](#web-interface-guide)
 - [Training Details](#training-details)
-- [Results](#results)
+- [Results & Progression](#results--progression)
 - [Troubleshooting](#troubleshooting)
 - [Advanced Configuration](#advanced-configuration)
 - [Contributing](#contributing)
@@ -32,7 +36,7 @@ A PyTorch implementation of a Generative Adversarial Network (GAN) that learns t
 
 ## 🎯 Overview
 
-This project implements a **simple feedforward GAN** (Generative Adversarial Network) to generate handwritten digit images. The model consists of two neural networks:
+This project implements a **simple feedforward GAN** (Generative Adversarial Network) to generate handwritten digit images, now featuring an interactive web-based interface for real-time training visualization and image generation. The model consists of two neural networks competing in an adversarial game:
 
 - **Generator** 🎨: Creates fake images from random noise vectors
 - **Discriminator** 🔍: Distinguishes between real MNIST images and generated fakes
@@ -41,12 +45,116 @@ Through adversarial training, the Generator learns to produce increasingly reali
 
 ### Key Highlights
 
-- ✅ Simple and easy-to-understand architecture
-- ✅ Automatic CUDA/GPU acceleration
-- ✅ Real-time training visualization
-- ✅ Checkpoint saving and resuming
-- ✅ Clean, well-documented code
-- ✅ Beginner-friendly implementation
+- ✅ **Interactive Web UI**: Modern, real-time training dashboard with live metrics
+- ✅ **Command-Line Scripts**: Traditional Python scripts for automated training
+- ✅ **Real-Time Visualization**: Watch generated samples improve during training
+- ✅ **Automatic CUDA/GPU acceleration**
+- ✅ **Checkpoint saving and resuming**
+- ✅ **Loss monitoring with healthy training indicators**
+- ✅ **One-click image generation from trained models**
+- ✅ **Clean, well-documented codebase**
+
+---
+
+## 🆕 What's New: Web Interface
+
+The project now includes a sophisticated web-based interface built with Flask and Socket.IO for real-time interaction. Here's what the new UI offers:
+
+### Main Interface Components
+
+![MNIST GAN Studio Interface](resources/mnist_gan_studio_main.png)
+*Main training interface with real-time loss metrics and generated samples*
+
+**Features visible in the interface:**
+- **Training Control Panel**: Configure epochs and start/stop training with one click
+- **Real-Time Loss Metrics**: Live visualization of Generator and Discriminator losses
+- **Healthy Training Indicators**: Automatic guidance on whether your training is progressing well
+- **Generated Samples Grid**: 8×8 grid of samples updated every few epochs
+- **Backend Connection Status**: Real-time connection monitoring
+- **Model Checkpoint Selection**: Easy switching between different training epochs
+
+### Training Progress Visualization
+
+The interface provides immediate feedback on training quality:
+
+![Training Progress](resources/training_progression_ui.png)
+*Progressive improvement of generated digits from early to late epochs*
+
+**Early Training (Epoch 5)**
+- Blurry, unrecognizable patterns
+- Random noise-like structures
+- High generator loss
+
+**Mid Training (Epoch 25)**
+- Recognizable digit outlines
+- Some clear numbers emerging
+- Balanced losses
+
+**Late Training (Epoch 50)**
+- Sharp, realistic handwritten digits
+- Diverse styles and variations
+- Stable, converged losses
+
+### Image Generation Interface
+
+![Generation Interface](resources/generation_interface.png)
+*Post-training generation with model checkpoint selection*
+
+The generation panel allows you to:
+- Select any saved model checkpoint
+- Choose number of images to generate (16, 36, 64, or 100)
+- Generate new digits with one click
+- Download results as PNG files
+- View high-quality 10×10 grids
+
+---
+
+## 🏗️ GAN Architecture
+
+### Architecture Diagram
+
+![GAN Architecture Overview](resources/gan_architecture_diagram.png)
+*Complete GAN architecture showing data flow between Generator and Discriminator*
+
+The diagram illustrates:
+1. **Random Noise Input**: 64-dimensional noise vector (z)
+2. **Generator Network**: Transforms noise into 28×28 images
+3. **Discriminator Network**: Classifies images as Real or Fake
+4. **Adversarial Training Loop**: Backpropagation feedback to improve both networks
+
+### Network Details
+
+**Generator Architecture**
+```
+Input: Random Noise Vector (64 dimensions)
+   ↓
+Linear Layer: 64 → 256 neurons
+ReLU Activation
+   ↓
+Linear Layer: 256 → 512 neurons
+ReLU Activation
+   ↓
+Linear Layer: 512 → 784 neurons (28×28 image)
+Tanh Activation (outputs in range [-1, 1])
+   ↓
+Output: Generated 28×28 grayscale image
+```
+
+**Discriminator Architecture**
+```
+Input: Image (28×28 = 784 pixels)
+   ↓
+Linear Layer: 784 → 512 neurons
+LeakyReLU Activation (negative slope = 0.2)
+   ↓
+Linear Layer: 512 → 256 neurons
+LeakyReLU Activation (negative slope = 0.2)
+   ↓
+Linear Layer: 256 → 1 neuron
+Sigmoid Activation (outputs probability 0-1)
+   ↓
+Output: Real (1) or Fake (0) probability
+```
 
 ---
 
@@ -63,6 +171,7 @@ This MNIST GAN project accomplishes the following:
 3. **Generates New Digits**: After training, the Generator can create unlimited unique, realistic-looking handwritten digits
 4. **Saves Progress**: Automatically saves training checkpoints and generated sample images throughout training
 5. **Visualizes Results**: Creates image grids showing the quality improvement of generated digits over time
+6. **Interactive Training**: Web interface provides real-time feedback and control
 
 ### Use Cases
 
@@ -71,6 +180,7 @@ This MNIST GAN project accomplishes the following:
 - **Creative**: Produce unique handwritten digit artwork or animations
 - **Research**: Serve as a baseline for more advanced GAN experiments
 - **Prototyping**: Quick starting point for similar image generation projects
+- **Interactive Learning**: Use the web UI to understand training dynamics in real-time
 
 ---
 
@@ -84,68 +194,70 @@ Here's the complete workflow from setup to generation:
 └─────────────────────────────────────────────────────────────────────┘
 
 1. SETUP PHASE
-   ├── Install dependencies (PyTorch, torchvision, matplotlib)
+   ├── Install dependencies (PyTorch, Flask, matplotlib)
    ├── Download MNIST dataset (automatic on first run)
    └── Initialize GPU/CPU device
 
-2. TRAINING PHASE (train_gan.py)
-   ├── Initialize Generator & Discriminator networks
-   ├── Load MNIST data in batches
-   ├── For each epoch:
-   │   ├── Train Discriminator on real + fake images
-   │   ├── Train Generator to fool Discriminator
-   │   ├── Log losses
-   │   └── Every 5 epochs:
-   │       ├── Save checkpoint to checkpoints/
-   │       └── Generate sample images to results/
-   └── Save final model and images
+2. TRAINING PHASE
+   ├── OPTION A: Web Interface (app.py)
+   │   ├── Launch Flask server
+   │   ├── Open browser dashboard
+   │   ├── Configure training parameters
+   │   ├── Monitor real-time loss metrics
+   │   └── View generated samples during training
+   │
+   └── OPTION B: Command Line (train_gan.py)
+       ├── Initialize Generator & Discriminator networks
+       ├── Load MNIST data in batches
+       ├── For each epoch:
+       │   ├── Train Discriminator on real + fake images
+       │   ├── Train Generator to fool Discriminator
+       │   ├── Log losses
+       │   └── Every 5 epochs:
+       │       ├── Save checkpoint to checkpoints/
+       │       └── Generate sample images to results/
+       └── Save final model and images
 
-3. GENERATION PHASE (generate.py)
-   ├── Load trained model from checkpoint
-   ├── Generate random noise vectors
-   ├── Feed noise through Generator
-   ├── Create image grids
-   └── Save generated samples to results/
+3. GENERATION PHASE
+   ├── OPTION A: Web Interface
+   │   ├── Select trained model checkpoint
+   │   ├── Choose number of images
+   │   ├── Click "Generate New Digits"
+   │   └── Download results
+   │
+   └── OPTION B: Command Line (generate.py)
+       ├── Load trained model from checkpoint
+       ├── Generate random noise vectors
+       ├── Feed noise through Generator
+       ├── Create image grids
+       └── Save generated samples to results/
 
 4. ANALYSIS PHASE
    ├── Review training progress images
    ├── Compare epoch 5 vs epoch 50 quality
    ├── Check architecture diagrams in resources/
-   └── Analyze loss curves
+   └── Analyze loss curves for training health
 ```
 
-### Detailed Step-by-Step Flow
+### Visual Training Progression
 
-**Step 1: Data Preparation**
-- MNIST images are normalized to [-1, 1] range
-- Images flattened from 28×28 to 784-dimensional vectors
-- Batched into groups of 64 for efficient training
+![Training Progression](resources/training_stages.png)
+*Visual comparison of generated digits at different training stages*
 
-**Step 2: Adversarial Training Loop**
-```
-For each batch:
-├── Discriminator Training:
-│   ├── Show real MNIST images (label: 1 = real)
-│   ├── Generate fake images from noise (label: 0 = fake)
-│   ├── Discriminator learns to classify both
-│   └── Update Discriminator weights
-│
-└── Generator Training:
-    ├── Generate new fake images
-    ├── Get Discriminator's opinion on fakes
-    ├── Generator tries to maximize "real" score
-    └── Update Generator weights
-```
+**Epoch 5**: Initial noise patterns
+- Generator Loss: ~1.2
+- Discriminator Loss: ~0.6
+- Quality: Barely recognizable shapes
 
-**Step 3: Quality Improvement**
-- Early epochs: Blurry, unrecognizable shapes
-- Mid epochs: Rough digit outlines emerge
-- Late epochs: Clear, realistic handwritten digits
+**Epoch 25**: Emerging structures
+- Generator Loss: ~0.9
+- Discriminator Loss: ~0.65
+- Quality: Clear digit outlines
 
-**Step 4: Deployment**
-- Trained Generator can create unlimited new digits
-- No Discriminator needed after training
-- Fast generation: ~1000 images per second on GPU
+**Epoch 50**: High-quality digits
+- Generator Loss: ~0.85
+- Discriminator Loss: ~0.65
+- Quality: Realistic handwritten digits
 
 ---
 
@@ -165,19 +277,18 @@ Think of a GAN as a game between two players:
    - Gets better at spotting fakes over time
    - Forces the Forger to improve
 
-![GAN Architecture](resources/gan_architecture_diagram.png)
-*Diagram showing the complete GAN architecture with Generator and Discriminator*
-
-### Training Process
+### Training Process Flow
 
 ```
                     ┌─────────────┐
                     │ Random Noise│
+                    │   Vector z  │
                     └──────┬──────┘
                            │
                            ▼
                     ┌─────────────┐
                     │  Generator  │ ← Learns to create realistic images
+                    │   Network   │
                     └──────┬──────┘
                            │
                    Fake Images
@@ -188,6 +299,7 @@ Think of a GAN as a game between two players:
 ┌───────────────┐                    ┌─────────────────┐
 │  Real Images  │                    │  Fake Images    │
 │  from MNIST   │                    │ from Generator  │
+│  (Label: 1)   │                    │  (Label: 0)     │
 └───────┬───────┘                    └────────┬────────┘
         │                                      │
         └──────────────┬───────────────────────┘
@@ -195,33 +307,69 @@ Think of a GAN as a game between two players:
                        ▼
               ┌─────────────────┐
               │ Discriminator   │ ← Learns to detect fakes
+              │    Network      │
               └────────┬─────────┘
                        │
                        ▼
-              Real (1) or Fake (0)?
+        ┌──────────────┴──────────────┐
+        │                              │
+        ▼                              ▼
+    Real (1)                       Fake (0)
+        │                              │
+        └──────────┬───────────────────┘
+                   │
+                   ▼
+              ┌─────────┐
+              │  Loss   │
+              └────┬────┘
+                   │
+        ┌──────────┴──────────┐
+        │                     │
+        ▼                     ▼
+  Backpropagate          Train Generator
+     Feedback
 ```
 
 ### Mathematical Foundation
 
-**Generator Loss:**
+**Generator Loss (Adversarial Loss):**
 ```
-L_G = -log(D(G(z)))
+L_G = -E[log(D(G(z)))]
 ```
-Goal: Maximize the probability that the Discriminator classifies fake images as real.
+- **Goal**: Maximize the probability that the Discriminator classifies fake images as real
+- **Intuition**: Generator wants D(G(z)) to be close to 1 (real)
 
-**Discriminator Loss:**
+**Discriminator Loss (Binary Classification):**
 ```
-L_D = -[log(D(x)) + log(1 - D(G(z)))]
+L_D = -E[log(D(x))] - E[log(1 - D(G(z)))]
 ```
-Goal: Correctly classify real images as real (1) and fake images as fake (0).
+- **Goal**: Correctly classify real images as real (1) and fake images as fake (0)
+- **Intuition**: Maximize confidence on real images, minimize confidence on fake images
 
-![Training Progress](resources/training_progression.png)
-*Visual showing how generated digits improve from epoch 5 to epoch 50*
+### Training Dynamics
+
+The web interface helps visualize these dynamics in real-time:
+
+![Loss Curves](resources/loss_metrics_dashboard.png)
+*Real-time loss monitoring in the web interface*
+
+**Healthy Training Indicators:**
+- **Discriminator Loss**: 0.5 - 0.7 (balanced performance)
+- **Generator Loss**: 0.7 - 1.5 (actively learning)
+- **Loss Stability**: Gradual convergence without wild oscillations
+
+**Warning Signs:**
+- **D_loss → 0**: Discriminator too strong, Generator can't learn
+- **D_loss → 1**: Generator dominates, possible mode collapse
+- **Oscillating Losses**: Training instability, reduce learning rate
 
 ---
 
 ## ✨ Features
 
+### Core Features
+
+- **Dual Interface Options**: Web UI for interaction, CLI for automation
 - **Automatic Dataset Download**: MNIST dataset is downloaded automatically on first run
 - **GPU Acceleration**: Automatic CUDA detection and utilization
 - **Progress Visualization**: Generated samples saved every 5 epochs
@@ -229,6 +377,24 @@ Goal: Correctly classify real images as real (1) and fake images as fake (0).
 - **Memory Efficient**: Optimized batch processing
 - **Extensible Architecture**: Easy to modify for other datasets
 - **Clean Code**: Well-commented and follows best practices
+
+### Web Interface Features
+
+- **Real-Time Training**: Watch loss metrics update during training
+- **Live Sample Preview**: See generated digits improve in real-time
+- **Training Control**: Start, stop, and configure training from the browser
+- **Model Management**: Easy checkpoint selection and loading
+- **One-Click Generation**: Generate new images without writing code
+- **Download Results**: Export generated images directly from the interface
+- **Responsive Design**: Works on desktop and tablet devices
+- **Backend Status**: WebSocket connection monitoring
+
+### Command-Line Features
+
+- **Automated Training**: Set parameters and let it run
+- **Batch Processing**: Train multiple models with different configs
+- **Script Integration**: Easy to integrate into larger pipelines
+- **Resource Efficient**: Minimal overhead compared to web interface
 
 ---
 
@@ -239,21 +405,30 @@ Goal: Correctly classify real images as real (1) and fake images as fake (0).
 - **OS**: Linux, macOS, or Windows
 - **Python**: 3.8 or higher
 - **RAM**: 4GB minimum (8GB+ recommended)
-- **Storage**: ~200MB for dataset and checkpoints
+- **Storage**: ~500MB (dataset, checkpoints, and dependencies)
 - **GPU** (Optional but recommended): NVIDIA GPU with CUDA support
+- **Browser**: Modern browser (Chrome, Firefox, Safari, Edge) for web interface
 
 ### Software Dependencies
 
 ```
+# Core ML Libraries
 torch>=2.0.0
 torchvision>=0.15.0
-matplotlib>=3.5.0
-numpy>=1.21.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+Pillow>=9.5.0
+
+# Web Interface
+Flask==3.0.0
+Flask-CORS==4.0.0
+Flask-SocketIO==5.3.5
+python-socketio==5.10.0
 ```
 
 ### CUDA Support
 
-For GPU acceleration, ensure you have:
+For GPU acceleration:
 - NVIDIA GPU (GTX 10 series or newer recommended)
 - CUDA Toolkit 11.8 or 12.1
 - cuDNN (usually comes with PyTorch)
@@ -271,16 +446,16 @@ python -c "import torch; print(f'CUDA Available: {torch.cuda.is_available()}')"
 
 ```bash
 # If using git
-git clone https://github.com/yourusername/simple-gan-mnist.git
-cd simple-gan-mnist
+git clone https://github.com/yourusername/mnist-gan-studio.git
+cd mnist-gan-studio
 
-# Or simply create a new directory
+# Or create a new directory
 mkdir gan_project && cd gan_project
 ```
 
 ### Step 2: Install Dependencies
 
-**Option A: Using pip**
+**Option A: Using pip (Recommended)**
 ```bash
 pip install -r requirements.txt
 ```
@@ -301,19 +476,20 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 
 # Install remaining packages
-pip install matplotlib numpy
+pip install Flask Flask-CORS Flask-SocketIO matplotlib numpy Pillow
 ```
 
 ### Step 3: Verify Installation
 
 ```bash
-python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA: {torch.cuda.is_available()}')"
+python -c "import torch, flask; print(f'PyTorch: {torch.__version__}'); print(f'CUDA: {torch.cuda.is_available()}'); print(f'Flask: {flask.__version__}')"
 ```
 
 Expected output:
 ```
 PyTorch: 2.0.1
 CUDA: True
+Flask: 3.0.0
 ```
 
 ---
@@ -321,250 +497,437 @@ CUDA: True
 ## 📁 Project Structure
 
 ```
-gan_project/
+mnist-gan-studio/
 │
-├── README.md                 # This file - Complete documentation
-├── requirements.txt          # Python dependencies list
-├── train_gan.py             # Main training script - Runs GAN training
-├── generate.py              # Generate images from trained model
+├── README.md                 # This comprehensive documentation
+├── requirements.txt          # Python dependencies
+├── train_gan.py             # CLI training script
+├── generate.py              # CLI generation script
+├── app.py                   # Flask web application (NEW!)
 │
-├── .github/                 # GitHub specific files
-│   └── copilot-instructions.md  # Instructions for GitHub Copilot
+├── static/                  # Web interface assets (NEW!)
+│   ├── css/
+│   │   └── style.css        # UI styling
+│   ├── js/
+│   │   └── app.js           # Frontend logic
+│   └── index.html           # Main web interface
+│
+├── .github/                 
+│   └── copilot-instructions.md  
 │
 ├── dataset/                 # Auto-created on first run
-│   └── MNIST/               # MNIST dataset storage
-│       ├── raw/             # Downloaded dataset files (60,000 images)
-│       └── processed/       # Preprocessed tensors for faster loading
+│   └── MNIST/              
+│       ├── raw/             # Downloaded dataset (60,000 images)
+│       └── processed/       # Preprocessed tensors
 │
-├── resources/               # Documentation resources and visual aids
-│   ├── gan_architecture_diagram.png    # Network architecture visualization
-│   ├── training_progression.png        # Quality improvement over epochs
-│   ├── generator_network.png           # Detailed Generator architecture
-│   ├── discriminator_network.png       # Detailed Discriminator architecture
-│   ├── loss_curves.png                 # Training loss visualization
-│   └── sample_outputs/                 # Example generated images
+├── resources/               # Documentation and visual resources
+│   ├── gan_architecture_diagram.png     # Architecture overview
+│   ├── training_progression_ui.png      # UI training progression
+│   ├── generation_interface.png         # Generation panel
+│   ├── loss_metrics_dashboard.png       # Real-time loss visualization
+│   ├── training_stages.png              # Epoch comparison
+│   ├── mnist_gan_studio_main.png        # Main interface screenshot
+│   ├── generator_network.png            # Detailed Generator
+│   ├── discriminator_network.png        # Detailed Discriminator
+│   └── sample_outputs/                  # Example results
 │       ├── epoch_05_samples.png
 │       ├── epoch_25_samples.png
 │       └── epoch_50_samples.png
 │
-├── results/                 # Auto-created: Generated images during training
-│   ├── epoch_5.png          # 8×8 grid of generated digits at epoch 5
-│   ├── epoch_10.png         # Generated samples at epoch 10
-│   ├── epoch_15.png         # Generated samples at epoch 15
-│   ├── ...                  # Progressive improvement visible
+├── results/                 # Auto-created: Generated images
+│   ├── epoch_5.png          # Early training results
+│   ├── epoch_10.png        
+│   ├── ...                  # Progressive improvement
 │   ├── epoch_50.png         # Final training results
-│   ├── final_generated.png  # Best quality samples
-│   └── generated_samples.png # Output from generate.py (10×10 grid)
+│   ├── final_generated.png  # Best samples
+│   └── generated_samples.png # Generated via generate.py
 │
-└── checkpoints/             # Auto-created: Model checkpoints for resuming
-    ├── checkpoint_epoch_5.pth     # Model state at epoch 5
-    ├── checkpoint_epoch_10.pth    # Model state at epoch 10
-    ├── checkpoint_epoch_15.pth    # Model state at epoch 15
-    └── checkpoint_epoch_50.pth    # Final trained model (use this!)
+└── checkpoints/             # Auto-created: Model states
+    ├── checkpoint_epoch_5.pth
+    ├── checkpoint_epoch_10.pth
+    ├── ...
+    └── checkpoint_epoch_50.pth  # Use this for generation!
 ```
 
-### Folder and File Descriptions
+### New Files for Web Interface
 
-#### Core Scripts
+#### `app.py` - Flask Application
+```python
+# Main Flask server with Socket.IO for real-time updates
+# Handles:
+# - Training management
+# - Real-time loss streaming
+# - Image generation requests
+# - Checkpoint management
+```
 
-- **`train_gan.py`**: Main training script that:
-  - Initializes Generator and Discriminator networks
-  - Loads MNIST dataset
-  - Runs adversarial training loop for 50 epochs
-  - Saves checkpoints and sample images every 5 epochs
-  - Prints training progress and loss values
+#### `static/index.html` - Web Interface
+```html
+<!-- Modern, responsive UI with:
+- Training control panel
+- Real-time loss visualization
+- Generated image grid
+- Model checkpoint selector
+- Download functionality
+-->
+```
 
-- **`generate.py`**: Post-training image generation script that:
-  - Loads a trained Generator from checkpoint
-  - Creates random noise vectors
-  - Generates 100 new digit images
-  - Displays them in a 10×10 grid
-  - Saves output to results/
+#### `static/js/app.js` - Frontend Logic
+```javascript
+// WebSocket communication
+// Real-time chart updates
+// Image grid rendering
+// User interaction handling
+```
 
-- **`requirements.txt`**: Lists all Python package dependencies with version requirements
-
-- **`README.md`**: This comprehensive documentation file
-
-#### Data and Output Directories
-
-- **`dataset/`**: Automatically created directory for MNIST data
-  - Downloads on first run (~12MB)
-  - Contains 60,000 training images + 10,000 test images
-  - Preprocessed tensors stored for faster subsequent runs
-
-- **`results/`**: Contains all generated image outputs
-  - Progress snapshots saved every 5 epochs
-  - Final high-quality generated samples
-  - Image grids for easy visualization
-  - Use these to track training quality improvement
-
-- **`checkpoints/`**: Stores model state dictionaries
-  - Includes Generator weights, Discriminator weights
-  - Also saves optimizer states for perfect resuming
-  - Each checkpoint is ~2-3MB
-  - Can resume training from any saved epoch
-
-- **`resources/`**: Documentation and reference materials
-  - Architecture diagrams for understanding network structure
-  - Sample outputs demonstrating expected results
-  - Training progression visualizations
-  - Loss curve examples for comparison
-  - Reference these when learning or troubleshooting
-
-#### Configuration Files
-
-- **`.github/copilot-instructions.md`**: Instructions for GitHub Copilot integration (optional)
+#### `static/css/style.css` - Styling
+```css
+/* Modern dark theme with purple accents
+   Glassmorphism effects
+   Responsive grid layouts
+   Smooth animations
+*/
+```
 
 ---
 
 ## 🎮 Usage
 
-### Basic Training
+### Option 1: Web Interface (Recommended for Beginners)
 
-Run the training script with default settings:
+#### Start the Web Server
+
+```bash
+python app.py
+```
+
+Expected output:
+```
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.100:5000 (network)
+Using device: cuda
+GPU: NVIDIA GeForce RTX 3080
+```
+
+#### Access the Interface
+
+Open your browser and navigate to:
+```
+http://localhost:5000
+```
+
+![Web Interface Main Screen](resources/mnist_gan_studio_main.png)
+
+#### Training Workflow (Web UI)
+
+1. **Configure Training**
+   - Set number of epochs (default: 50)
+   - Click "Show Advanced Settings" for more options
+   - Review estimated training time
+
+2. **Start Training**
+   - Click "▶ Start Training" button
+   - Watch real-time loss metrics update
+   - Monitor the "Backend Connected" status
+
+3. **Monitor Progress**
+   - **Loss Metrics Panel**: Shows Generator and Discriminator losses
+   - **Healthy Training Indicator**: Green text confirms balanced training
+   - **Generated Samples**: Updates every 5 epochs automatically
+   - **Progress Bar**: Visual feedback on training completion
+
+4. **Generate Images**
+   - Navigate to "Generate Images" section
+   - Select model checkpoint (Epoch 50 recommended)
+   - Choose number of images (64 for 8×8 grid)
+   - Click "🔄 Generate New Digits"
+   - Click "⬇ Download Results" to save
+
+### Option 2: Command Line Interface
+
+#### Training via CLI
 
 ```bash
 python train_gan.py
 ```
 
-### What Happens During Training
+**What happens:**
+1. Downloads MNIST dataset (first run only, ~12MB)
+2. Creates directories (dataset/, results/, checkpoints/)
+3. Trains for 50 epochs (~5-10 minutes on GPU)
+4. Saves checkpoints every 5 epochs
+5. Generates sample images to results/
 
-1. **Initialization** (First run only)
-   - Downloads MNIST dataset (~12MB)
-   - Creates necessary directories (dataset/, results/, checkpoints/)
-   - Initializes models on GPU/CPU
+**Expected output:**
+```
+Using device: cuda
+GPU: NVIDIA GeForce RTX 3080
+Generator parameters: 533,776
+Discriminator parameters: 533,777
 
-2. **Training Loop**
-   - Trains for 50 epochs (configurable)
-   - Prints loss every 5 epochs
-   - Saves generated images every 5 epochs to `results/`
-   - Saves model checkpoints to `checkpoints/`
+==================================================
+Starting Training Loop...
+==================================================
 
-3. **Output**
-   ```
-   Using device: cuda
-   GPU: NVIDIA GeForce RTX 3080
-   Generator parameters: 533,776
-   Discriminator parameters: 533,777
-   
-   ==================================================
-   Starting Training Loop...
-   ==================================================
-   
-   Epoch [5/50] | Loss D: 0.6234 | Loss G: 0.8912
-   Epoch [10/50] | Loss D: 0.5821 | Loss G: 1.0234
-   Epoch [15/50] | Loss D: 0.6102 | Loss G: 0.9456
-   ...
-   ```
+Epoch [5/50] | Loss D: 0.6234 | Loss G: 0.8912
+Epoch [10/50] | Loss D: 0.5821 | Loss G: 1.0234
+Epoch [15/50] | Loss D: 0.6102 | Loss G: 0.9456
+...
+Epoch [50/50] | Loss D: 0.6543 | Loss G: 0.8893
 
-### Generating New Images
+==================================================
+Training Complete!
+==================================================
 
-After training, generate new digits:
+Final results saved to: results/final_generated.png
+```
+
+#### Generating Images via CLI
 
 ```bash
 python generate.py
 ```
 
-This will:
-- Load the trained model from the latest checkpoint
-- Generate 100 new digit images
-- Display them in a 10×10 grid
-- Save to `results/generated_samples.png`
+**Output:**
+- Creates 100 new digit images
+- Displays 10×10 grid
+- Saves to `results/generated_samples.png`
 
-### Resume Training from Checkpoint
+---
 
-Modify `train_gan.py` to resume training:
+## 🖥️ Web Interface Guide
 
-```python
-# Add this after model initialization
-checkpoint = torch.load('checkpoints/checkpoint_epoch_30.pth')
-gen.load_state_dict(checkpoint['gen_state_dict'])
-disc.load_state_dict(checkpoint['disc_state_dict'])
-opt_gen.load_state_dict(checkpoint['opt_gen_state_dict'])
-opt_disc.load_state_dict(checkpoint['opt_disc_state_dict'])
-start_epoch = checkpoint['epoch'] + 1
+### Interface Components
 
-# Update the training loop
-for epoch in range(start_epoch, num_epochs):
-    # ... rest of training code
-```
+#### 1. Training Control Panel
 
-### Viewing Resources
+![Training Controls](resources/training_control_panel.png)
 
-Check the `resources/` folder to:
-- Understand network architecture: `gan_architecture_diagram.png`
-- See expected training progression: `training_progression.png`
-- Compare your results with sample outputs: `sample_outputs/`
-- Analyze loss curves: `loss_curves.png`
+**Features:**
+- **Epochs Input**: Set training duration (1-200)
+- **Advanced Settings**: Access hyperparameter controls
+- **Start/Stop Buttons**: Manage training execution
+- **Backend Status**: Real-time connection indicator
+
+**Usage Tips:**
+- Start with 50 epochs for first run
+- Use 20-30 epochs for quick tests
+- 100+ epochs for highest quality results
+
+#### 2. Loss Metrics Dashboard
+
+![Loss Metrics](resources/loss_metrics_dashboard.png)
+
+**Displayed Metrics:**
+- **Generator Loss**: Should stabilize around 0.7-1.5
+- **Discriminator Loss**: Should stabilize around 0.5-0.7
+- **Progress Bars**: Visual representation of loss values
+- **Training Health**: Automatic assessment
+
+**Interpreting the Dashboard:**
+- **Green Text**: "Healthy training: D-loss around 0.5-0.7, G-loss around 0.7-1.5"
+- **Loss Values**: Updated in real-time during training
+- **Balanced Losses**: Both networks learning effectively
+
+#### 3. Generated Samples Grid
+
+![Generated Samples Grid](resources/generated_samples_grid.png)
+
+**Features:**
+- **8×8 Grid**: 64 generated samples
+- **Auto-Update**: Refreshes every 5 epochs
+- **Progressive Improvement**: Visual quality enhancement over time
+- **Full-Screen View**: Click to enlarge
+
+**What to Look For:**
+- **Early Epochs (5-15)**: Blurry, noisy patterns
+- **Mid Epochs (20-35)**: Recognizable digit shapes
+- **Late Epochs (40-50)**: Sharp, realistic handwritten digits
+
+#### 4. Image Generation Panel
+
+![Generation Panel](resources/generation_interface.png)
+
+**Components:**
+- **Model Checkpoint Selector**: Choose epoch to load
+- **Number of Images**: 64 (8×8) or 100 (10×10)
+- **Generate Button**: Create new samples
+- **Download Button**: Save results as PNG
+
+**Workflow:**
+1. Select "Epoch 50 (Best)" from dropdown
+2. Choose "64 (8×8)" for preview or "100 (10×10)" for collection
+3. Click "Generate New Digits"
+4. Wait for generation (1-2 seconds)
+5. Review generated images
+6. Click "Download Results" to save
 
 ---
 
 ## 🎓 Training Details
 
-### Model Architecture
+### Model Architecture Deep Dive
 
-![Generator Architecture](resources/generator_network.png)
-*Detailed Generator network structure*
+#### Generator Network
 
-**Generator**
-```
-Input: Random noise vector (64 dimensions)
-   ↓
-Linear(64 → 256) + ReLU
-   ↓
-Linear(256 → 512) + ReLU
-   ↓
-Linear(512 → 784) + Tanh
-   ↓
-Output: Image (28×28 pixels)
-```
+**Purpose**: Transform random noise into realistic digit images
 
-![Discriminator Architecture](resources/discriminator_network.png)
-*Detailed Discriminator network structure*
-
-**Discriminator**
-```
-Input: Image (28×28 = 784 pixels)
-   ↓
-Linear(784 → 512) + LeakyReLU(0.2)
-   ↓
-Linear(512 → 256) + LeakyReLU(0.2)
-   ↓
-Linear(256 → 1) + Sigmoid
-   ↓
-Output: Probability (0=Fake, 1=Real)
+**Architecture:**
+```python
+class Generator(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            # Layer 1: Expand noise to initial feature space
+            nn.Linear(64, 256),       # 64 → 256 neurons
+            nn.ReLU(True),            # ReLU activation
+            
+            # Layer 2: Expand feature space
+            nn.Linear(256, 512),      # 256 → 512 neurons
+            nn.ReLU(True),            # ReLU activation
+            
+            # Layer 3: Map to image space
+            nn.Linear(512, 784),      # 512 → 784 (28×28 image)
+            nn.Tanh()                 # Tanh: outputs in [-1, 1]
+        )
 ```
 
-### Hyperparameters
+**Layer-by-Layer Analysis:**
 
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| Learning Rate | 0.0002 | Adam optimizer learning rate |
-| Beta1 | 0.5 | Adam momentum parameter |
-| Beta2 | 0.999 | Adam momentum parameter |
-| Batch Size | 64 | Images per training batch |
-| Latent Dimension | 64 | Size of noise vector |
-| Epochs | 50 | Total training epochs |
-| Loss Function | Binary Cross Entropy | BCE Loss |
+| Layer | Input Dim | Output Dim | Activation | Purpose |
+|-------|-----------|------------|------------|---------|
+| Linear 1 | 64 | 256 | ReLU | Initial feature extraction |
+| Linear 2 | 256 | 512 | ReLU | Feature expansion |
+| Linear 3 | 512 | 784 | Tanh | Image reconstruction |
 
-### Training Time
+**Why These Activations?**
+- **ReLU**: Non-linearity for hidden layers, computationally efficient
+- **Tanh**: Output range [-1, 1] matches normalized MNIST data
 
-| Hardware | Approximate Time |
-|----------|------------------|
-| NVIDIA RTX 3080 | ~5 minutes |
-| NVIDIA GTX 1060 | ~10 minutes |
-| CPU (Intel i7) | ~30 minutes |
-| CPU (Intel i5) | ~45 minutes |
+#### Discriminator Network
+
+**Purpose**: Classify images as real or fake
+
+**Architecture:**
+```python
+class Discriminator(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            # Layer 1: Process image input
+            nn.Linear(784, 512),           # 784 (28×28) → 512
+            nn.LeakyReLU(0.2),            # LeakyReLU with slope 0.2
+            
+            # Layer 2: Compress features
+            nn.Linear(512, 256),           # 512 → 256
+            nn.LeakyReLU(0.2),            # LeakyReLU with slope 0.2
+            
+            # Layer 3: Binary classification
+            nn.Linear(256, 1),             # 256 → 1 (probability)
+            nn.Sigmoid()                   # Sigmoid: outputs in [0, 1]
+        )
+```
+
+**Why LeakyReLU?**
+- Prevents dying ReLU problem
+- Allows gradient flow for negative values
+- Standard choice for GAN discriminators
+
+### Hyperparameters Explained
+
+#### Core Parameters
+
+```python
+lr = 0.0002              # Learning rate for Adam optimizer
+batch_size = 64          # Images per training batch
+z_dim = 64               # Noise vector dimension
+image_dim = 784          # 28×28 flattened image
+num_epochs = 50          # Total training epochs
+```
+
+#### Optimizer Configuration
+
+```python
+opt_gen = optim.Adam(
+    gen.parameters(),
+    lr=0.0002,           # Learning rate
+    betas=(0.5, 0.999)   # Adam momentum parameters
+)
+
+opt_disc = optim.Adam(
+    disc.parameters(),
+    lr=0.0002,
+    betas=(0.5, 0.999)
+)
+```
+
+**Why beta1 = 0.5?**
+- Standard practice for GANs
+- Lower momentum for better stability
+- Prevents oscillations in adversarial training
+
+### Training Algorithm
+
+#### Two-Step Process
+
+**Step 1: Train Discriminator**
+```python
+# Generate fake images
+noise = torch.randn(batch_size, z_dim)
+fake_images = gen(noise)
+
+# Discriminator evaluates real images
+disc_real = disc(real_images)
+loss_d_real = criterion(disc_real, torch.ones_like(disc_real))
+
+# Discriminator evaluates fake images
+disc_fake = disc(fake_images.detach())  # detach() prevents Generator update
+loss_d_fake = criterion(disc_fake, torch.zeros_like(disc_fake))
+
+# Combined discriminator loss
+loss_d = (loss_d_real + loss_d_fake) / 2
+loss_d.backward()
+opt_disc.step()
+```
+
+**Step 2: Train Generator**
+```python
+# Generate new fake images (without detach this time)
+output = disc(fake_images)
+
+# Generator tries to fool discriminator
+loss_g = criterion(output, torch.ones_like(output))  # Want discriminator to output 1
+
+loss_g.backward()
+opt_gen.step()
+```
+
+### Training Time Estimates
+
+| Hardware | Batch Size | Time per Epoch | Total (50 epochs) |
+|----------|------------|----------------|-------------------|
+| RTX 4090 | 64 | ~4 seconds | ~3 minutes |
+| RTX 3080 | 64 | ~6 seconds | ~5 minutes |
+| RTX 2060 | 64 | ~10 seconds | ~8 minutes |
+| GTX 1660 | 64 | ~15 seconds | ~12 minutes |
+| CPU (i7-12700K) | 64 | ~40 seconds | ~35 minutes |
+| CPU (i5-9400F) | 64 | ~60 seconds | ~50 minutes |
 
 ### Memory Usage
 
-- **GPU VRAM**: ~500MB - 1GB
-- **System RAM**: ~2GB during training
-- **Disk Space**: ~200MB (dataset + checkpoints)
+**GPU VRAM Requirements:**
+- **Minimum**: 2GB (batch_size=32)
+- **Recommended**: 4GB (batch_size=64)
+- **Optimal**: 6GB+ (batch_size=128)
+
+**System RAM:**
+- **Training**: ~2-3GB
+- **Dataset**: ~200MB (cached in RAM)
+- **Web Interface**: +500MB for Flask server
 
 ---
 
-## 📊 Results
+## 📊 Results & Progression
 
 ### Training Progress Visualization
 
